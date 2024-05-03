@@ -27,10 +27,6 @@ app.config["SECRET_KEY"] = os.urandom(24)
 configure_uploads(app, uploads)
 myFolder = os.getenv("UPLOAD_FOLDER")
 
-# Credential for Google Drive API
-credentials = ServiceAccountCredentials.from_json_keyfile_name("client_secret.json")
-drive_service = build("drive", "v3", credentials=credentials)
-
 
 def gen_audio(prompt):
     speech_file_path = "speech2.wav"
@@ -57,6 +53,7 @@ def getAudio():
 
 @app.route("/")
 def home():
+
     return "Application Ready"
 
 
@@ -92,21 +89,10 @@ def upload_file(fileAudio):
 
         print("Archivo guardado con éxito:", file_path)
 
-        file_metadata = {
-            "name": filename,
-            'parents': ['1r3oa6pUAcwJi4gBuJkApINjogXOXKQXm'],
-        }
-        media = MediaFileUpload(file.name, mimetype='audio/webm')
-        print("Subiendo archivo:", file.name)
-        myFile = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-        print("Archivo subido con éxito:", myFile.get('id'))
-        # Get the file url
-        file_url = f"https://drive.google.com/file/d/{myFile.get('id')}/view"
-        print("URL del archivo:", file_url)
         audio_file = open(file_path, "rb")
         text_from_audio = speechToText(audio_file)
 
-        return jsonify({"message": "File uploaded successfully","url":file_url, "text":text_from_audio}), 200
+        return jsonify({"message": "File uploaded successfully", "text":text_from_audio}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 404
 
